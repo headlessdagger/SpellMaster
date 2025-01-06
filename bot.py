@@ -35,10 +35,12 @@ async def find_spell_command(ctx: ApplicationContext, spellname=Option(SlashComm
     if not spell_info:
         await ctx.respond(f"No spell response from [{ctx.command.name}]")
         return None
+
     
     embed = make_embed(
-        title="Spell Description",
-        description=f"{spell_info.json()}",
+        title="INSERT NAME OF SPELL",
+        description=f"This info was pulled from [INSERT SPELL WEB PAGE]",
+        fields=[]
     )
     await ctx.respond(f"Command: [{ctx.command.name}] Invoked!")
     await ctx.respond(embed=embed)
