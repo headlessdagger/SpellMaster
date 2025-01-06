@@ -3,6 +3,7 @@ from typing import Any, List, Optional, Tuple, Union
 from discord import Colour, Embed, EmbedField
 from datetime import datetime
 import requests as req
+import os
 
 
 __all__ = (
@@ -129,8 +130,8 @@ def make_embed(
     return embed
 
 
-SPELL_NAMES_PATH = r"C:\Users\Big Poppin D\Documents\ProgrammingStuff\python\discord_bot\SpellMaster\utilities\spell_names.txt"
-SPELL_INDEXES_PATH = r"C:\Users\Big Poppin D\Documents\ProgrammingStuff\python\discord_bot\SpellMaster\utilities\spell_names_indexes.txt"
+SPELL_NAMES_PATH = os.path.dirname(__file__) + "\\spell_names.txt"
+SPELL_INDEXES_PATH = os.path.dirname(__file__) +  "\\spell_names_indexes.txt"
 
 with open(SPELL_NAMES_PATH, "r") as spell_names_file:
     SPELL_NAMES_LS = spell_names_file.read().split("\n")
@@ -347,7 +348,7 @@ def main():
                 response = getSpellResponse(selection())
                 valid = bool(response)
                 print(f"Is a valid response?: {valid}")
-                print(f"Response:\n{response}" if bool(respo))
+                print(f"Response:\n{response}" if bool(response) else "No response")
                 
             case getSpell.__name__:
                 print(selection("misty-step"))
