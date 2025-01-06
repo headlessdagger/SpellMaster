@@ -30,16 +30,18 @@ async def displaySpellsCommand(ctx: ApplicationContext, j=Option(input_type=str,
     
 
 @bot.slash_command(name="find-spell", description="Display Info for a specific spell")
-async def find_spell_command(ctx: ApplicationContext, spellname: Option(SlashCommandOptionType.string)):
+async def find_spell_command(ctx: ApplicationContext, spellname=Option(SlashCommandOptionType.string)):
     spell_info = getSpell(spellname)
-
-    if spell_info:
-        embed = make_embed(
-            title="Spell Description",
-            description=f"{spell_info.json()}"
-        )
-        await ctx.respond(f"Command: [{ctx.command.name}] Invoked!\n\n{spell_info}")
-    else:
+    if not spell_info:
+        await ctx.respond(f"No spell response from [{ctx.command.name}]")
+        return None
+    
+    embed = make_embed(
+        title="Spell Description",
+        description=f"{spell_info.json()}",
+    )
+    await ctx.respond(f"Command: [{ctx.command.name}] Invoked!")
+    await ctx.respond(embed=embed)
         
 
 load_dotenv()
