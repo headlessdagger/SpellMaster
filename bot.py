@@ -1,12 +1,12 @@
 from __future__ import annotations
 print("Loading Imports.", end="")
-from discord import Bot, Intents, ApplicationContext, Option, SlashCommandOptionType
+from discord import Bot, Intents, ApplicationContext, Interaction, Option, SlashCommandOptionType, Button, ButtonStyle
 print(".", end="")
 from utilities import make_embed, getSpell, SPELL_NAMES_LS
 print(".", end="")
 from dotenv import load_dotenv
 print(".", end="")
-# import typing
+from classes import SpellPagesUI
 # print(".", end="")
 from os import listdir, getenv
 print(".")
@@ -24,8 +24,9 @@ async def on_ready() -> None:
     print("SpellMaster Online!")
     
 @bot.slash_command(name="display-spell-names")
-async def displaySpellsCommand(ctx: ApplicationContext, j=Option(input_type=str, required=True) ):
-    await ctx.respond(f"Hello! {j}")
+async def displaySpellsCommand(ctx: ApplicationContext):
+    ui = SpellPagesUI(SPELL_NAMES_LS)
+    await ui.display_components(ctx.interaction)
     
 
 @bot.slash_command(name="find-spell", description="Display Info for a specific spell")
@@ -41,9 +42,9 @@ async def find_spell_command(ctx: ApplicationContext, spellname=Option(SlashComm
     
     embed = make_embed(
         title=spellname,
-        description=f"This info was pulled from [INSERT SPELL WEB PAGE]",
+        description=f"This info was pulled from https://www.dnd5eapi.co",
         colour=0x008cff, # Cornflower blue ish
-        fields=[(key_str, spell_info_dict[key_str], False) for key_str in spell_info_dict.keys()]
+        fields=[(key_str, spell_info_dict[key_str], False)  for key_str in spell_info_dict.keys()]
     )
 
     await ctx.respond(embed=embed)
