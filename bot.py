@@ -30,21 +30,22 @@ async def displaySpellsCommand(ctx: ApplicationContext, j=Option(input_type=str,
 
 @bot.slash_command(name="find-spell", description="Display Info for a specific spell")
 async def find_spell_command(ctx: ApplicationContext, spellname=Option(SlashCommandOptionType.string)):
-    spell_info = getSpell(spellname)
-    if not spell_info:
-        await ctx.respond(f"No spell response from [{ctx.command.name}]")
-        return None
+    spellname = spellname.title()
+    try:
+        spell_info_dict = getSpell(spellname)
     
-    spell_info_dict = spell_info.json()
+    except ValueError as errV:
+        await ctx.respond(str(errV))
+        return None
  
     
     embed = make_embed(
-        title="INSERT NAME OF SPELL",
+        title=spellname,
         description=f"This info was pulled from [INSERT SPELL WEB PAGE]",
+        colour=0x008cff, # Cornflower blue ish
         fields=[(key_str, spell_info_dict[key_str], False) for key_str in spell_info_dict.keys()]
     )
 
-    await ctx.respond(f"Command: [{ctx.command.name}] Invoked!")
     await ctx.respond(embed=embed)
         
 

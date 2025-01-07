@@ -143,17 +143,13 @@ with open(SPELL_INDEXES_PATH, "r") as spell_indexes_file:
 def getSpellResponse(spell_name: str=""):
     url = f"https://www.dnd5eapi.co/api/spells/{spell_name}"
     
-    try:
-        response = req.get(url)
-
-    except Exception as e:
-        print(e.__class__.__name__)
-        return False
+    response = req.get(url)
+    response.raise_for_status()
         
-    else:
-        return response
+    return response
     
 
+# Spell Checking
 def isSpellName(spell_name):
         if spell_name in SPELL_NAMES_LS:
             return True
@@ -171,21 +167,21 @@ def switchSpellNameToIndex(spell_name):
     return spell_name
 
 
+# Retrieve
 def getSpell(spell_name: str) -> bool | Any:
-    if isSpellName(spell_name):
-        spell_name = switchSpellNameToIndex(spell_name)
+    # you should try and except the apropriate errors
+    spell_name = switchSpellNameToIndex(spell_name)
     
-    elif isSpellIndex(spell_name):
+    try:
         spell_response = getSpellResponse(spell_name)
-        if spell_response.status_code == 200:
-            return spell_response.json()
-        return False
-    
-    else:
-        return False
+    except req.exceptions.HTTPError as errH:
+        raise ValueError("Spell couldn't be retrieved.")
 
 
-# Functions for testing
+    return spell_response.json()
+
+
+# Testing Funcs
 def getSpellName():
     while True:
         name = input("Inspect Spell: ").strip()
@@ -213,103 +209,6 @@ def count_spell(response_dict):
 
 def getVerboseSpell(response_dict):
     return getSpellResponse("chain-lightning")
-
-
-class TimeStampStr(str):
-    # Change __set__ to be whatever for when you actually get the variable like there are three different things?
-    # make init be able to take a value unless that is not somehting you are supposed to do for descriptor classes
-    def __init__(self, time_stamp_str: str = None):
-        if time_stamp_str:
-            self.__set__()
-    
-    def __set_name__(self, owner, name):
-        self._name = name
-        
-    def __get__(self, instance, owner):
-        return instance.__dict__[self._name]
-    
-    def __set__(self, instance, value):
-        # substrings are less than or equal to 60
-        # substrings are positive
-        # value is string
-        # (1, seconds), (2, minutes), (3, hours), (4, days), (5, years)
-        
-        if not isinstance(value, str):
-            raise ValueError("invalid literal \"{value}\" for TimeStampStr: must be set to string type literal")
-        
-        if value.replace(" ", "") == value:
-            raise ValueError(f"invalid literal \"{value}\" for TimeStampStr: no spaces allowed in string")
-        
-        try:
-            segments = value.split(":")
-        except:
-            raise ValueError("invalid literal \"{value}\" for TimeStampStr: time segments must be seperated by \":\" characters in format \"years:days:hours:minutes\"")
-        
-
-        for idx, segment in enumerate(segments[::-1]):
-            if idx == 0:
-                segment_type = "seconds"
-                segment_max_count = 59
-                
-                if self._isPositiveNumberGreaterThanValueStr(segment, max=segment_max_count):
-                    self.seconds = segment
-                else:
-                    raise ValueError(f"invalid literal \"{value}\" for TimeStampStr: {segment_type} must be positive numbers lower than or equal to {segment_max_count}")
-                    
-            elif idx == 1:
-                segment_type = "minutes"
-                segment_max_count = 59
-                
-                if self._isPositiveNumberGreaterThanValueStr(segment, max=segment_max_count):
-                    self.minutes = segment
-                else:
-                    raise ValueError(f"invalid literal \"{value}\" for TimeStampStr: {segment_type} must be positive numbers lower than or equal to {segment_max_count}")
-            
-            elif idx == 2:
-                segment_type = "hours"
-                segment_max_count = 59
-                
-                if self._isPositiveNumberGreaterThanValueStr(segment, max=segment_max_count):
-                    self.hours = segment
-                else:
-                    raise ValueError(f"invalid literal \"{value}\" for TimeStampStr: {segment_type} must be positive numbers lower than or equal to {segment_max_count}")
-                
-            elif idx == 3:
-                segment_type = "days"
-                segment_max_count = 365
-                
-                if self._isPositiveNumberGreaterThanValueStr(segment, max=segment_max_count):
-                    self.days = segment
-                else:
-                    raise ValueError(f"invalid literal \"{value}\" for TimeStampStr: {segment_type} must be positive numbers lower than or equal to {segment_max_count}")
-
-            elif idx == 4:
-                segment_type = "years"
-                segment_max_count = 9999
-                
-                if self._isPositiveNumberGreaterThanValueStr(segment, max=segment_max_count):
-                    self.years = segment
-                else:
-                    raise ValueError(f"invalid literal \"{value}\" for TimeStampStr: {segment_type} must be positive numbers lower than or equal to {segment_max_count}")
-            
-            else:
-                raise ValueError("invalid literal \"{value}\" for TimeStampStr: 5 segments permitted more than 5 in literal")
-            
-
-    
-    
-    def _isPositiveNumberGreaterThanValueStr(self, number_str: str, max: int):
-        try:
-            int_number_str = int(number_str)
-        except:
-            return False
-        else:
-            if 0 <= int_number_str < max:
-                return True
-
-
-    def __add__(self, time_stamps) -> "TimeStampStr":
-        ...
 
 
 def selectFunction(selections):
@@ -351,7 +250,8 @@ def main():
                 print(f"Response:\n{response}" if bool(response) else "No response")
                 
             case getSpell.__name__:
-                print(selection("misty-step"))
+                spell_response = selection("misty-step")
+                print(f"type: {type(spell_response)} | {spell_response}")
                 
             case switchSpellNameToIndex.__name__:
                 while True:
